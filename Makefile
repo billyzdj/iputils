@@ -2,15 +2,18 @@
 # Configuration
 #
 
-# CC
+#指定gcc程序
 CC=gcc
-# Path to parent kernel include files directory
+#内核包含文件的路径
 LIBC_INCLUDE=/usr/include
-# Libraries
+# 所有库
 ADDLIB=
-# Linker flags
+# wl选项告诉编译器将后面的参数传递给链接器
+#-Wl,-Bstatic告诉链接器使用-Bstatic选项，该选项是告诉链接器，对接下来的-l选项使用静态链接
+#-Wl,-Bdynamic就是告诉链接器对接下来的-l选项使用动态链接
 LDFLAG_STATIC=-Wl,-Bstatic
 LDFLAG_DYNAMIC=-Wl,-Bdynamic
+#指定加载库
 LDFLAG_CAP=-lcap
 LDFLAG_GNUTLS=-lgnutls-openssl
 LDFLAG_CRYPTO=-lcrypto
@@ -19,8 +22,8 @@ LDFLAG_RESOLV=-lresolv
 LDFLAG_SYSFS=-lsysfs
 
 #
-# Options
-#
+# 所有选项
+#变量定义，设置开关
 
 # Capability support (with libcap) [yes|static|no]
 USE_CAP=yes
@@ -49,8 +52,11 @@ ENABLE_RDISC_SERVER=no
 # -------------------------------------
 # What a pity, all new gccs are buggy and -Werror does not work. Sigh.
 # CCOPT=-fno-strict-aliasing -Wstrict-prototypes -Wall -Werror -g
+#定义gcc的默认参数
+#-Wstrict-prototypes: 如果函数的声明或定义没有指出参数类型，编译器就发出警告
 CCOPT=-fno-strict-aliasing -Wstrict-prototypes -Wall -g
 CCOPTOPT=-O3
+#-D_GNU_SOURCE表示符合GNU标准
 GLIBCFIX=-D_GNU_SOURCE
 DEFINES=
 LDLIB=
