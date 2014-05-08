@@ -26,27 +26,37 @@ LDFLAG_SYSFS=-lsysfs
 #变量定义，设置开关
 
 # Capability support (with libcap) [yes|static|no]
+#对libcap库文件的性能支持
 USE_CAP=yes
 # sysfs support (with libsysfs - deprecated) [no|yes|static]
+#对sysfs文件系统的支持
 USE_SYSFS=no
 # IDN support (experimental) [no|yes|static]
+#对国际化域名的支持
 USE_IDN=no
 
 # Do not use getifaddrs [no|yes|static]
+#不使用getifaddrs获取本地IP地址
 WITHOUT_IFADDRS=no
 # arping default device (e.g. eth0) []
+#使用ARP级别的ping工具检测默认的设备
 ARPING_DEFAULT_DEVICE=
 
 # GNU TLS library for ping6 [yes|no|static]
+#使用GNUTLS库实现TLS加密协议
 USE_GNUTLS=yes
 # Crypto library for ping6 [shared|static]
+#分享Crypto密码类库
 USE_CRYPTO=shared
 # Resolv library for ping6 [yes|static]
+#使用Resolv库
 USE_RESOLV=yes
 # ping6 source routing (deprecated by RFC5095) [no|yes|RFC3542]
+#不使用ping6源路由
 ENABLE_PING6_RTHDR=no
 
 # rdisc server (-r option) support [no|yes]
+#不支持rdisc（路由器发现守护程序）服务器
 ENABLE_RDISC_SERVER=no
 
 # -------------------------------------
@@ -61,6 +71,7 @@ GLIBCFIX=-D_GNU_SOURCE
 DEFINES=
 LDLIB=
 
+#$(1)、$(2)是call函数里规定的参数形式
 FUNC_LIB = $(if $(filter static,$(1)),$(LDFLAG_STATIC) $(2) $(LDFLAG_DYNAMIC),$(2))
 
 # USE_GNUTLS: DEF_GNUTLS, LIB_GNUTLS
@@ -73,6 +84,7 @@ else
 endif
 
 # USE_RESOLV: LIB_RESOLV
+#对resolve库的使用
 LIB_RESOLV = $(call FUNC_LIB,$(USE_RESOLV),$(LDFLAG_RESOLV))
 
 # USE_CAP:  DEF_CAP, LIB_CAP
@@ -82,28 +94,33 @@ ifneq ($(USE_CAP),no)
 endif
 
 # USE_SYSFS: DEF_SYSFS, LIB_SYSFS
+#对sysfs文件系统的使用：DEF_SYSFS, LIB_SYSFS
 ifneq ($(USE_SYSFS),no)
 	DEF_SYSFS = -DUSE_SYSFS
 	LIB_SYSFS = $(call FUNC_LIB,$(USE_SYSFS),$(LDFLAG_SYSFS))
 endif
 
 # USE_IDN: DEF_IDN, LIB_IDN
+#对国际化域名（IDN）的使用：DEF_IDN, LIB_IDN
 ifneq ($(USE_IDN),no)
 	DEF_IDN = -DUSE_IDN
 	LIB_IDN = $(call FUNC_LIB,$(USE_IDN),$(LDFLAG_IDN))
 endif
 
 # WITHOUT_IFADDRS: DEF_WITHOUT_IFADDRS
+#getifaddrs获取本地IP地址
 ifneq ($(WITHOUT_IFADDRS),no)
 	DEF_WITHOUT_IFADDRS = -DWITHOUT_IFADDRS
 endif
 
 # ENABLE_RDISC_SERVER: DEF_ENABLE_RDISC_SERVER
+#对RDISC（路由器发现守护程序）服务器的使用
 ifneq ($(ENABLE_RDISC_SERVER),no)
 	DEF_ENABLE_RDISC_SERVER = -DRDISC_SERVER
 endif
 
 # ENABLE_PING6_RTHDR: DEF_ENABLE_PING6_RTHDR
+#对ping6源路由的使用
 ifneq ($(ENABLE_PING6_RTHDR),no)
 	DEF_ENABLE_PING6_RTHDR = -DPING6_ENABLE_RTHDR
 ifeq ($(ENABLE_PING6_RTHDR),RFC3542)
@@ -112,6 +129,7 @@ endif
 endif
 
 # -------------------------------------
+#列出要生成的目标文件
 IPV4_TARGETS=tracepath ping clockdiff rdisc arping tftpd rarpd
 IPV6_TARGETS=tracepath6 traceroute6 ping6
 TARGETS=$(IPV4_TARGETS) $(IPV6_TARGETS)
@@ -127,6 +145,12 @@ TAG:=$(shell date --date=$(TODAY) +s%Y%m%d)
 
 
 # -------------------------------------
+# COMPILE.c=$(CC) $(CFLAGS) $(CPPFLAGS) -c
+# $< 依赖目标中的第一个目标名字 
+# $@ 表示目标
+# $^ 所有的依赖目标的集合 
+# 在$(patsubst %.o,%,$@ )中，patsubst把目标中的变量符合后缀是.o的全部删除,  DEF_ping
+# LINK.o把.o文件链接在一起的命令行,缺省值是$(CC) $(LDFLAGS) $(TARGET_ARCH)
 .PHONY: all ninfod clean distclean man html check-kernel modules snapshot
 
 all: $(TARGETS)
@@ -140,6 +164,7 @@ $(TARGETS): %: %.o
 
 # -------------------------------------
 # arping
+#设置arping（ 在指定网卡上发送ARP请求指定地址，可用来直接 ping MAC 地址，以及找出那些 ip 地址被哪些电脑所使用）
 DEF_arping = $(DEF_SYSFS) $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_arping = $(LIB_SYSFS) $(LIB_CAP) $(LIB_IDN)
 
@@ -148,16 +173,19 @@ DEF_arping += -DDEFAULT_DEVICE=\"$(ARPING_DEFAULT_DEVICE)\"
 endif
 
 # clockdiff
+#设置clockdiff 检测两台linux主机的时间差
 DEF_clockdiff = $(DEF_CAP)
 LIB_clockdiff = $(LIB_CAP)
 
 # ping / ping6
+#设置ping / ping6
 DEF_ping_common = $(DEF_CAP) $(DEF_IDN)
 DEF_ping  = $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_ping  = $(LIB_CAP) $(LIB_IDN)
 DEF_ping6 = $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS) $(DEF_ENABLE_PING6_RTHDR) $(DEF_CRYPTO)
 LIB_ping6 = $(LIB_CAP) $(LIB_IDN) $(LIB_RESOLV) $(LIB_CRYPTO)
 
+#列出所有依赖关系
 ping: ping_common.o
 ping6: ping_common.o
 ping.o ping_common.o: ping_common.h
@@ -188,11 +216,13 @@ DEF_tftpd =
 DEF_tftpsubs =
 LIB_tftpd =
 
+#列出依赖关系
 tftpd: tftpsubs.o
 tftpd.o tftpsubs.o: tftp.h
 
 # -------------------------------------
 # ninfod
+#@set -e；   加@表示makefile执行这条命令时不显示出来，在"set -e"之后出现的代码，一旦出现了返回值非零，整个脚本就会立即退出
 ninfod:
 	@set -e; \
 		if [ ! -f ninfod/Makefile ]; then \
@@ -204,6 +234,8 @@ ninfod:
 
 # -------------------------------------
 # modules / check-kernel are only for ancient kernels; obsolete
+#对内核进行检测
+#仅检测较低版本的内核
 check-kernel:
 ifeq ($(KERNEL_INCLUDE),)
 	@echo "Please, set correct KERNEL_INCLUDE"; false
@@ -213,10 +245,14 @@ else
 		echo "Please, set correct KERNEL_INCLUDE"; false; fi
 endif
 
+#内核检测模块
 modules: check-kernel
 	$(MAKE) KERNEL_INCLUDE=$(KERNEL_INCLUDE) -C Modules
 
 # -------------------------------------
+#生成帮助文档
+#生成html文档
+#distclean:清除上次的make命令所产生的object文件（后缀为“.o”的文件）及可执行文件,但同时也将configure生成的文件全部删除掉，包括Makefile文件
 man:
 	$(MAKE) -C doc man
 
